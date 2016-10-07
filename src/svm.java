@@ -14,22 +14,33 @@ import libsvm.LibSVM;
 
 public class svm {
 	public static void main(String[] args) throws Exception {
+		// Read iris data into javaml Dataset
 		Dataset irisData = FileHandler.loadDataset(new File("src/iris.data"), 4, ",");
+		
+		//Convert javaml to weka instances
 		ToWekaUtils weka = new ToWekaUtils(irisData);
 		Instances irisInstances = weka.getDataset();
+		
+		
 		int index = irisInstances.numAttributes()-1;
 		irisInstances.setClassIndex(index);
 		
+		//Split data into training and test
 		irisInstances.randomize(new java.util.Random());	
 		Instances trainData = irisInstances.trainCV(2,0);
 		Instances testData = irisInstances.testCV(2, 0);
 		
+		//Convert weka instances back to javaml
 		FromWekaUtils javamlTrain = new FromWekaUtils(trainData); 
 		FromWekaUtils javamlTest = new FromWekaUtils(testData);
 		
+		//Initialize svm classifier
 		Classifier svm = new LibSVM();
+		
+		//Build model using training data
 		svm.buildClassifier(javamlTrain.getDataset());
 		
+		//Get Accuracy using Test Data
 		Map<Object, PerformanceMeasure> map = EvaluateDataset.testDataset(svm,javamlTest.getDataset());
 		for(Object obj : map.keySet()){
 			System.out.println(obj + " : " + map.get(obj).getAccuracy());
